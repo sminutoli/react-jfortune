@@ -17,11 +17,8 @@ function matrix3dRotateZ(angle) {
     [0, 0, 1, 0],
     [0, 0, 0, 1]
   ];
-  let matrix3d = '';
-  for (let i = 0; i < matrix.length; i += 1) {
-    matrix3d += (i > 0 ? ',' : '') + matrix[i].join(',');
-  }
-  return matrix3d;
+  const createMatrix = (acc, val, i) => acc + (i > 0 ? ',' : '') + val.join(',');
+  return matrix.reduce(createMatrix, '');
 }
 
 function createTransformFromMatrix3d(matrix3d) {
@@ -37,27 +34,12 @@ class JFortune extends Component {
 
   constructor(props) {
     super(props);
-    const defaultOptions = {
-      duration: 1000,
-      separation: 5,
-      minSpins: 10,
-      maxSpins: 15,
-      direction: 'clockwise',
-      wheelClassname: 'wheel',
-      spinnerClassname: 'spinner',
-      bezier: {
-        p1x: 0.17,
-        p1y: 0.67,
-        p2x: 0.12,
-        p2y: 0.99
-      },
-      separatorThickness: 7,
-      onSpinBounce: Function.prototype
-    };
-    const options = Object.assign({}, defaultOptions, props.options);
-    const { prices = mustBeDefined('options.prices') } = this.options;
+    const options = Object.assign({}, JFortune.defaultOptions, props.options);
+    const { prices = mustBeDefined('options.prices') } = options;
     const total = Array.isArray(prices) ? prices.length : prices;
-    const gap = 360 / this.total;
+    const gap = 360 / total;
+    this.spin = this.spin.bind(this);
+    this.doSpin = this.doSpin.bind(this);
     this.state = {
       options,
       total,
@@ -86,7 +68,6 @@ class JFortune extends Component {
       this.price = fixedPrice;
       this.stop = this.directionMultiplier(fixedDirection) * fixedStop;
     }
-
     this.prev_angle = this.start_time = 0;
 
     this.spin_frame = requestAnimationFrame(this.doSpin);
@@ -102,9 +83,8 @@ class JFortune extends Component {
     this.start_time = this.start_time || timestamp;
     const delta = timestamp - this.start_time;
     const { options: { bezier }, options: opts } = this.state;
-
-    if (delta < this.opts.duration) {
-      const x = delta / this.opts.duration;
+    if (delta < opts.duration) {
+      const x = delta / opts.duration;
       const y = Bezier.cubicBezier(bezier.p1x, bezier.p1y, bezier.p2x, bezier.p2y, x);
       this.angle = y * this.stop;
       this.rotate(this.angle, this.direction);
@@ -113,9 +93,9 @@ class JFortune extends Component {
     }
 
     if (Math.abs(this.angle) < Math.abs(this.stop)) {
-      this.spin_frame = requestAnimationFrame(this.spin);
+      this.spin_frame = requestAnimationFrame(this.doSpin);
     } else {
-      this.fullfiled(Array.isArray(opts.prices) ? opts.prices[this.price] : this.price);
+      this.fulfilled(Array.isArray(opts.prices) ? opts.prices[this.price] : this.price);
     }
   }
 
@@ -149,7 +129,7 @@ class JFortune extends Component {
     this.stopSpinnerBounce();
 
     if (this.deferred) {
-      this.fullfiled(Array.isArray(opts.prices) ? opts.prices[this.price] : this.price);
+      this.fulfilled(Array.isArray(opts.prices) ? opts.prices[this.price] : this.price);
     }
   }
 
@@ -196,5 +176,26 @@ class JFortune extends Component {
 JFortune.propTypes = {
   options: PropTypes.object.isRequired
 };
+JFortune.defaultOptions = {
+  duration: 1000,
+  separation: 5,
+  minSpins: 10,
+  maxSpins: 15,
+  direction: 'clockwise',
+  wheelClassname: 'wheel',
+  spinnerClassname: 'spinner',
+  bezier: {
+    p1x: 0.17,
+    p1y: 0.67,
+    p2x: 0.12,
+    p2y: 0.99
+  },
+  separatorThickness: 7,
+  onSpinBounce: Function.prototype
+};
 
-export default JFortune;
+export {
+  JFortune as default,
+  matrix3dRotateZ,
+  createTransformFromMatrix3d
+};
