@@ -25,7 +25,7 @@ function createTransformFromMatrix3d(matrix3d) {
   const matrix3dRule = `matrix3d(${matrix3d})`;
   return {
     transform: matrix3dRule,
-    '-webkit-transform': matrix3dRule
+    WebkitTransform: matrix3dRule
   };
 }
 

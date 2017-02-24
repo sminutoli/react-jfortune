@@ -19,7 +19,7 @@ describe('createTransformFromMatrix3d', () => {
     const matrix3d = matrix3dRotateZ(50);
     const actual = createTransformFromMatrix3d(matrix3d);
     const expected = {
-      '-webkit-transform': 'matrix3d(0.9649660284921133,-0.26237485370392877,0,0,0.26237485370392877,0.9649660284921133,0,0,0,0,1,0,0,0,0,1)',
+      WebkitTransform: 'matrix3d(0.9649660284921133,-0.26237485370392877,0,0,0.26237485370392877,0.9649660284921133,0,0,0,0,1,0,0,0,0,1)',
       transform: 'matrix3d(0.9649660284921133,-0.26237485370392877,0,0,0.26237485370392877,0.9649660284921133,0,0,0,0,1,0,0,0,0,1)'
     };
     expect(actual).toEqual(expected);
