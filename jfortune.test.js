@@ -4,7 +4,7 @@ import expect from 'expect';
 import React, { Component } from 'react';
 import { shallow } from 'enzyme';
 
-import JFortune, { matrix3dRotateZ, createTransformFromMatrix3d } from './jfortune';
+import JFortune, { matrix3dRotateZ, createTransformFromMatrix3d, JFortuneDirection } from './jfortune';
 
 describe('matrix3dRotateZ', () => {
   it('should produce a valid string', () => {
@@ -23,6 +23,17 @@ describe('createTransformFromMatrix3d', () => {
       transform: 'matrix3d(0.9649660284921133,-0.26237485370392877,0,0,0.26237485370392877,0.9649660284921133,0,0,0,0,1,0,0,0,0,1)'
     };
     expect(actual).toEqual(expected);
+  });
+});
+
+describe('JFortuneDirection', () => {
+  it('should expose CLOCKWISE', () => {
+    const actual = JFortuneDirection.CLOCKWISE;
+    expect(actual).toExist();
+  });
+  it('should expose COUNTER_CLOCKWISE', () => {
+    const actual = JFortuneDirection.COUNTER_CLOCKWISE;
+    expect(actual).toExist();
   });
 });
 

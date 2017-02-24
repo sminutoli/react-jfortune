@@ -29,6 +29,11 @@ function createTransformFromMatrix3d(matrix3d) {
   };
 }
 
+const JFortuneDirection = Object.freeze({
+  __proto__: null,
+  CLOCKWISE: 1,
+  COUNTER_CLOCKWISE: -1
+});
 
 class JFortune extends Component {
 
@@ -38,6 +43,7 @@ class JFortune extends Component {
     const { prices = mustBeDefined('options.prices') } = options;
     const total = Array.isArray(prices) ? prices.length : prices;
     const gap = 360 / total;
+    this.direction = options.direction;
     this.spin = this.spin.bind(this);
     this.doSpin = this.doSpin.bind(this);
     this.state = {
@@ -76,7 +82,7 @@ class JFortune extends Component {
   }
 
   directionMultiplier() {
-    return this.direction === 'counterclockwise' ? -1 : 1;
+    return this.direction === JFortuneDirection.COUNTER_CLOCKWISE ? -1 : 1;
   }
 
   doSpin(timestamp) {
@@ -165,23 +171,42 @@ class JFortune extends Component {
   }
 
   render() {
-    const { spinnerMatrix, wheelMatrix } = this.state;
-    return (<div>
-      <div className="spinner" style={createTransformFromMatrix3d(spinnerMatrix)} />
-      <div className="wheel" style={createTransformFromMatrix3d(wheelMatrix)} />
-    </div>);
+    const { spinnerText } = this.props;
+    const {
+      spinnerMatrix,
+      wheelMatrix,
+      options: {
+        wheelClassname,
+        spinnerClassname
+      }
+    } = this.state;
+    return (
+      <div>
+        <div
+          className={wheelClassname}
+          style={createTransformFromMatrix3d(wheelMatrix)}
+        />
+        <div
+          className={spinnerClassname}
+          style={createTransformFromMatrix3d(spinnerMatrix)}
+        >
+          {spinnerText}
+        </div>
+      </div>
+    );
   }
 }
 
 JFortune.propTypes = {
-  options: PropTypes.object.isRequired
+  options: PropTypes.object.isRequired,
+  spinnerText: PropTypes.string.isRequired
 };
 JFortune.defaultOptions = {
   duration: 1000,
   separation: 5,
   minSpins: 10,
   maxSpins: 15,
-  direction: 'clockwise',
+  direction: JFortuneDirection.CLOCKWISE,
   wheelClassname: 'wheel',
   spinnerClassname: 'spinner',
   bezier: {
@@ -197,5 +222,6 @@ JFortune.defaultOptions = {
 export {
   JFortune as default,
   matrix3dRotateZ,
-  createTransformFromMatrix3d
+  createTransformFromMatrix3d,
+  JFortuneDirection
 };
