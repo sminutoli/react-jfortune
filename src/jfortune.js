@@ -2,6 +2,7 @@ import React, { Component, PropTypes } from 'react';
 import Bezier from 'bezier';
 
 import randomBetween from './randomBetween';
+import { matrix3dRotateZ, createTransformFromMatrix3d } from './matrixCalcs';
 
 /* global requestAnimationFrame */
 /* global cancelAnimationFrame */
@@ -9,25 +10,6 @@ import randomBetween from './randomBetween';
 const mustBeDefined = (prop) => {
   throw Error(`${prop} must be defined!`);
 };
-
-function matrix3dRotateZ(angle) {
-  const matrix = [
-    [Math.cos(angle), Math.sin(angle), 0, 0],
-    [Math.sin(-angle), Math.cos(angle), 0, 0],
-    [0, 0, 1, 0],
-    [0, 0, 0, 1]
-  ];
-  const createMatrix = (acc, val, i) => acc + (i > 0 ? ',' : '') + val.join(',');
-  return matrix.reduce(createMatrix, '');
-}
-
-function createTransformFromMatrix3d(matrix3d) {
-  const matrix3dRule = `matrix3d(${matrix3d})`;
-  return {
-    transform: matrix3dRule,
-    WebkitTransform: matrix3dRule
-  };
-}
 
 const JFortuneDirection = Object.freeze({
   __proto__: null,
@@ -171,7 +153,7 @@ class JFortune extends Component {
   }
 
   render() {
-    const { spinnerText } = this.props;
+    const { children } = this.props;
     const {
       spinnerMatrix,
       wheelMatrix,
@@ -190,7 +172,7 @@ class JFortune extends Component {
           className={spinnerClassname}
           style={createTransformFromMatrix3d(spinnerMatrix)}
         >
-          {spinnerText}
+          {children || null}
         </div>
       </div>
     );
@@ -199,8 +181,12 @@ class JFortune extends Component {
 
 JFortune.propTypes = {
   options: PropTypes.object.isRequired,
-  spinnerText: PropTypes.string.isRequired
+  children: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.element
+  ])
 };
+
 JFortune.defaultOptions = {
   duration: 1000,
   separation: 5,
@@ -221,7 +207,5 @@ JFortune.defaultOptions = {
 
 export {
   JFortune as default,
-  matrix3dRotateZ,
-  createTransformFromMatrix3d,
   JFortuneDirection
 };
