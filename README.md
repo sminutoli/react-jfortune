@@ -1,6 +1,63 @@
 # react-jfortune
 Based on the popular [jfortune jQuery plugin](https://github.com/agustinrodriguez/jfortune)
 
+## exports
+The module exports:
+
+`JFortune (default) - a React.Component`
+
+`JFortuneDirection - an Enum`
+
+### JFortune
+
+Props
+```javascript
+{
+  options: PropTypes.object.isRequired,
+  children: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.element
+  ])
+}
+```
+
+Methods
+```javascript
+// [int] => Promise
+jfortune.spin();
+```
+
+Options default:
+```javascript
+{
+  duration: 1000,
+  separation: 5,
+  minSpins: 10,
+  maxSpins: 15,
+  direction: JFortuneDirection.CLOCKWISE,
+  wheelClassname: 'wheel',
+  spinnerClassname: 'spinner',
+  bezier: {
+    p1x: 0.17,
+    p1y: 0.67,
+    p2x: 0.12,
+    p2y: 0.99
+  },
+  separatorThickness: 7,
+  onSpinBounce: Function.prototype //noop
+}
+```
+
+Render output:
+```html
+<div>
+  <div className={wheelClassname} />
+  <div className={spinnerClassname}>
+    {children || null}
+  </div>
+</div>
+```
+
 ## example
 
 ```javascript
@@ -36,8 +93,9 @@ class SomeComponent extends React.Component {
         name="jfortune"
         ref={this.registerByName}
         options={opts}
-        spinnerText={<p onClick={this.spinWheel}><small>presione</small>ok</p>}
-      />
+      >
+        <p onClick={this.spinWheel}><small>presione</small>ok</p>
+      </JFortune>
     );
   }
 }
