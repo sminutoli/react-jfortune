@@ -17,6 +17,59 @@ const JFortuneDirection = Object.freeze({
   COUNTER_CLOCKWISE: -1
 });
 
+/* private or no exposed methods */
+const privates = {
+  directionMultiplier() {
+    return this.direction === JFortuneDirection.COUNTER_CLOCKWISE ? -1 : 1;
+  },
+  needsBounce() {
+    const { gap, options: opts } = this.state;
+    const gapCalc = gap * 0.5;
+    const mod = Math.abs((gapCalc + this.angle) % gap);
+    const diff = Math.abs(this.angle - this.prev_angle);
+    const low = opts.separatorThickness * 0.5;
+    const high = gap - low;
+
+    if (diff >= gapCalc) {
+      return 1;
+    } else if (mod < low || mod > high) {
+      return 2;
+    }
+    return 0;
+  },
+  rotate(fixedAngle, fixedDirection) {
+    this.direction = fixedDirection;
+    this.angle = fixedAngle;
+
+    this.doRotate(fixedAngle);
+
+    const itNeedsBounce = privates.needsBounce.call(this);
+    if (itNeedsBounce) {
+      if (itNeedsBounce === 1 || !this.state.isBouncing) {
+        this.state.options.onSpinBounce(this);
+      }
+      this.doSpinnerBounce(privates.directionMultiplier.call(this));
+    } else {
+      this.stopSpinnerBounce();
+    }
+
+    this.prev_angle = this.angle;
+  },
+  forceEnd() {
+    const { options: opts } = this.state;
+    if (this.spinFrame) {
+      cancelAnimationFrame(this.spinFrame);
+    }
+
+    privates.rotate.call(this, this.stop, this.direction);
+    this.stopSpinnerBounce();
+
+    if (this.deferred) {
+      this.fulfilled(Array.isArray(opts.prices) ? opts.prices[this.price] : this.price);
+    }
+  }
+};
+
 class JFortune extends Component {
 
   constructor(props) {
@@ -51,20 +104,16 @@ class JFortune extends Component {
       const position = gapCalc + rand; // gap * price - gap / 2 + rand
       const spins = randomBetween(opts.minSpins, opts.maxSpins);
       const spinsCalc = 360 * spins;
-      this.stop = this.directionMultiplier(fixedDirection) * (spinsCalc + position);
+      this.stop = privates.directionMultiplier.call(this, fixedDirection) * (spinsCalc + position);
     } else {
       this.price = fixedPrice;
-      this.stop = this.directionMultiplier(fixedDirection) * fixedStop;
+      this.stop = privates.directionMultiplier.call(this, fixedDirection) * fixedStop;
     }
     this.prev_angle = this.start_time = 0;
 
     this.spin_frame = requestAnimationFrame(this.doSpin);
 
     return this.deferred;
-  }
-
-  directionMultiplier() {
-    return this.direction === JFortuneDirection.COUNTER_CLOCKWISE ? -1 : 1;
   }
 
   doSpin(timestamp) {
@@ -75,9 +124,9 @@ class JFortune extends Component {
       const x = delta / opts.duration;
       const y = Bezier.cubicBezier(bezier.p1x, bezier.p1y, bezier.p2x, bezier.p2y, x);
       this.angle = y * this.stop;
-      this.rotate(this.angle, this.direction);
+      privates.rotate.call(this, this.angle, this.direction);
     } else {
-      this.forceEnd();
+      privates.forceEnd.call(this);
     }
 
     if (Math.abs(this.angle) < Math.abs(this.stop)) {
@@ -85,56 +134,6 @@ class JFortune extends Component {
     } else {
       this.fulfilled(Array.isArray(opts.prices) ? opts.prices[this.price] : this.price);
     }
-  }
-
-  rotate(fixedAngle, fixedDirection) {
-    this.direction = fixedDirection;
-    const directionMultiplier = this.directionMultiplier();
-    this.angle = fixedAngle;
-
-    this.doRotate(fixedAngle);
-
-    const needsBounce = this.needsBounce();
-    if (needsBounce) {
-      if (needsBounce === 1 || !this.state.isBouncing) {
-        this.state.options.onSpinBounce(this);
-      }
-      this.doSpinnerBounce(directionMultiplier);
-    } else {
-      this.stopSpinnerBounce();
-    }
-
-    this.prev_angle = this.angle;
-  }
-
-  forceEnd() {
-    const { options: opts } = this.state;
-    if (this.spinFrame) {
-      cancelAnimationFrame(this.spinFrame);
-    }
-
-    this.rotate(this.stop, this.direction);
-    this.stopSpinnerBounce();
-
-    if (this.deferred) {
-      this.fulfilled(Array.isArray(opts.prices) ? opts.prices[this.price] : this.price);
-    }
-  }
-
-  needsBounce() {
-    const { gap, options: opts } = this.state;
-    const gapCalc = gap * 0.5;
-    const mod = Math.abs((gapCalc + this.angle) % gap);
-    const diff = Math.abs(this.angle - this.prev_angle);
-    const low = opts.separatorThickness * 0.5;
-    const high = gap - low;
-
-    if (diff >= gapCalc) {
-      return 1;
-    } else if (mod < low || mod > high) {
-      return 2;
-    }
-    return 0;
   }
 
   doRotate(angle) {
