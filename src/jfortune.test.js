@@ -90,7 +90,7 @@ describe('Roulette', () => {
     beforeEach(function setup() {
       this.props = {
         options: {
-          duration: 1,
+          duration: 1000,
           prices: [
             { value: Math.random() },
             { value: Math.random() },

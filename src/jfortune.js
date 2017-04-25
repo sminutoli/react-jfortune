@@ -57,8 +57,8 @@ const privates = {
   },
   forceEnd() {
     const { options: opts } = this.state;
-    if (this.spinFrame) {
-      cancelAnimationFrame(this.spinFrame);
+    if (this.spin_frame) {
+      cancelAnimationFrame(this.spin_frame);
     }
 
     privates.rotate.call(this, this.stop, this.direction);
@@ -78,12 +78,14 @@ class JFortune extends Component {
     const { prices = mustBeDefined('options.prices') } = options;
     const total = Array.isArray(prices) ? prices.length : prices;
     const gap = 360 / total;
+    const fps2ms = 1000 / options.fps;
     this.direction = options.direction;
     this.spin = this.spin.bind(this);
     this.doSpin = this.doSpin.bind(this);
     this.state = {
       options,
       total,
+      fps2ms,
       gap
     };
   }
@@ -110,7 +112,6 @@ class JFortune extends Component {
       this.stop = privates.directionMultiplier.call(this, fixedDirection) * fixedStop;
     }
     this.prev_angle = this.start_time = 0;
-
     this.spin_frame = requestAnimationFrame(this.doSpin);
 
     return this.deferred;
@@ -118,8 +119,15 @@ class JFortune extends Component {
 
   doSpin(timestamp) {
     this.start_time = this.start_time || timestamp;
+    this.last_frame_time = this.last_frame_time || timestamp;
     const delta = timestamp - this.start_time;
-    const { options: { bezier }, options: opts } = this.state;
+    const deltaFromLastFrame = timestamp - this.last_frame_time;
+    const { options: { bezier }, options: opts, fps2ms } = this.state;
+    if (deltaFromLastFrame < fps2ms) {
+      this.spin_frame = requestAnimationFrame(this.doSpin);
+      return;
+    }
+    this.last_frame_time = timestamp;
     if (delta < opts.duration) {
       const x = delta / opts.duration;
       const y = Bezier.cubicBezier(bezier.p1x, bezier.p1y, bezier.p2x, bezier.p2y, x);
@@ -189,6 +197,7 @@ JFortune.propTypes = {
 JFortune.defaultOptions = {
   duration: 1000,
   separation: 5,
+  fps: 20,
   minSpins: 10,
   maxSpins: 15,
   direction: JFortuneDirection.CLOCKWISE,

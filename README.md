@@ -32,6 +32,7 @@ Options default:
 {
   duration: 1000,
   separation: 5,
+  fps: 20,
   minSpins: 10,
   maxSpins: 15,
   direction: JFortuneDirection.CLOCKWISE,
